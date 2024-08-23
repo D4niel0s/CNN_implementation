@@ -29,8 +29,8 @@ class Fully_connected(Layer):
         return self.output
 
     def backward(self, upstream_grad, learning_rate, batch_size=1):
-        #Assume upstream is a matrix where each column is a sample's upstream gradient, self.input is matrix of order dxn. (d-dimension of point, n-batch size)
-        dW = (upstream_grad @ self.input.T)/batch_size
+        #Assume upstream is a matrix where each column is a sample's upstream gradient (shape (d_out,n)), and self.input is matrix of shape (d_in,n).
+        dW = (upstream_grad @ self.input.T)/batch_size # This gets the mean of the batch
         db = cp.mean(upstream_grad, axis=1, keepdims=True)
         dx = self.W.T @ upstream_grad
 
