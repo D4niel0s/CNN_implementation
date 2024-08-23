@@ -19,7 +19,7 @@ class Layer(ABC):
 
 class Fully_connected(Layer):
     def __init__(self, input_dim, output_dim):
-        self.W = cp.random.random((output_dim, input_dim))
+        self.W = cp.random.uniform(0,1/input_dim ,(output_dim, input_dim)) #Kiaming initialization
         self.b = cp.random.random((output_dim, 1))
 
     def forward(self, inp, batch_size=1):
@@ -29,7 +29,7 @@ class Fully_connected(Layer):
         return self.output
 
     def backward(self, upstream_grad, learning_rate, batch_size=1):
-        #Assume upstream is column vector, self.input is matrix of order dxn. (d-dimension of point, n-batch size)
+        #Assume upstream is a matrix where each column is a sample's upstream gradient, self.input is matrix of order dxn. (d-dimension of point, n-batch size)
         dW = (upstream_grad @ self.input.T)/batch_size
         db = cp.mean(upstream_grad, axis=1, keepdims=True)
         dx = self.W.T @ upstream_grad
