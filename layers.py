@@ -19,7 +19,7 @@ class Layer(ABC):
 
 class Fully_connected(Layer):
     def __init__(self, input_dim, output_dim):
-        self.W = cp.random.uniform(0,1/input_dim ,(output_dim, input_dim)) #Kiaming initialization
+        self.W = cp.random.normal(0,1/input_dim ,(output_dim, input_dim)) #Kiaming initialization
         self.b = cp.random.random((output_dim, 1))
 
     def forward(self, inp, batch_size=1):
