@@ -57,4 +57,4 @@ class Activation(Layer):
 
 class ReLU(Activation):
     def __init__(self):
-        super().__init__(self, relu, relu_derivative) #Defined in funcs
+        super().__init__(relu, relu_derivative) #Defined in funcs
