@@ -1,17 +1,18 @@
-from layers import *
 from funcs import cross_entropy_loss, cross_entropy_derivative
 from mnist_loader import load_as_matrix_with_labels
 import matplotlib.pyplot as plt
+from layers import *
 import numpy as np
+
 #An example network
 network: list[Layer] = [
-    Fully_connected(784, 300),
+    Fully_connected(784, 250),
     ReLU(),
-    Fully_connected(300, 100),
+    Fully_connected(250, 100),
     ReLU(),
     Fully_connected(100, 50),
     ReLU(),
-    Fully_connected(50, 10)
+    Fully_connected(50, 10),
 ]
 
 n_train = 50000
@@ -20,23 +21,45 @@ x_train, y_train, x_test, y_test = load_as_matrix_with_labels(n_train, n_test)
 
 
 def main():
-    tr_errs, tr_accs, ts_errs, ts_accs = train(x_train, y_train, x_test, y_test, epochs=10, learning_rate=0.1, batch_size=100)
+    tr_errs, tr_accs, ts_errs, ts_accs = train(x_train, y_train, x_test, y_test, epochs=15, learning_rate=0.1, batch_size=100)
     
-    ep_range = np.linspace(1,10,10)
+    ep_range = np.linspace(1,15,15)
 
     plt.figure(1)
+    plt.title("NN error as a function of epoch")
     plt.plot(ep_range, tr_errs, color="red",label="training error")
     plt.plot(ep_range, ts_errs, color="blue",label="test error")
     plt.xlabel("Epoch")
+    plt.ylabel("Error")
     plt.legend()
 
     plt.figure(2)
+    plt.title("NN accuracy as a function of epoch")
     plt.plot(ep_range, tr_accs, color="green",label="training accuracy")
     plt.plot(ep_range, ts_accs, color="orange",label="test accuracy")
     plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
     plt.legend()
 
+
+    random_images = np.random.choice(n_test, 20)
     
+    #Plot all Principle components
+    fig, axs = plt.subplots(nrows=4, ncols=1, constrained_layout=True)
+    fig.suptitle('Random classifications')
+    for ax in axs:
+        ax.remove()
+
+    gridspec = axs[0].get_subplotspec().get_gridspec()
+    subfigs = [fig.add_subfigure(gs) for gs in gridspec]
+
+    for row, subfig in enumerate(subfigs):
+        axs = subfig.subplots(nrows=1, ncols=5)
+        for col, ax in enumerate(axs):
+            img = x_test[:, random_images[row*5 + col]]
+            ax.imshow(img.reshape((28, 28)), cmap=plt.cm.gray)
+            ax.set_title(f'pred: {cp.argmax(forward_prop(cp.array(img.reshape((784,1)))))}')
+            ax.axis("off")
 
 
     plt.show()
