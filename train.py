@@ -21,9 +21,10 @@ x_train, y_train, x_test, y_test = load_as_matrix_with_labels(n_train, n_test)
 
 
 def main():
-    tr_errs, tr_accs, ts_errs, ts_accs = train(x_train, y_train, x_test, y_test, epochs=15, learning_rate=0.1, batch_size=100)
+    epochs = 8
+    tr_errs, tr_accs, ts_errs, ts_accs = train(x_train, y_train, x_test, y_test, epochs=epochs, learning_rate=0.1, batch_size=100)
     
-    ep_range = np.linspace(1,15,15)
+    ep_range = np.linspace(1,epochs,epochs)
 
     plt.figure(1)
     plt.title("NN error as a function of epoch")
@@ -58,7 +59,7 @@ def main():
         for col, ax in enumerate(axs):
             img = x_test[:, random_images[row*5 + col]]
             ax.imshow(img.reshape((28, 28)), cmap=plt.cm.gray)
-            ax.set_title(f'pred: {cp.argmax(forward_prop(cp.array(img.reshape((784,1)))))}')
+            ax.set_title(f'pred: {cp.argmax(forward_prop(img.reshape((784,1))))}')
             ax.axis("off")
 
 
@@ -96,7 +97,6 @@ def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size):
 
         average_train_cost = cp.mean(cp.array(errs))
         average_train_acc = cp.mean(cp.array(accs))
-        print(f"Epoch: {e + 1}, Training loss: {average_train_cost:.20f}, Training accuracy: {average_train_acc:.20f}")
 
         # Convert to floats from cupy objects
         epoch_errs.append(float(average_train_cost))
@@ -107,6 +107,7 @@ def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size):
         test_loss = cross_entropy_loss(test_pred, y_test, network[len(network)-1].W.shape[0])
         preds = cp.argmax(test_pred, axis=0)
         test_acc = calculate_accuracy(preds, y_test, len(y_test))
+        print(f"Epoch: {e + 1}, Test loss: {test_loss:.20f}, Test accuracy: {test_acc:.20f}")
 
         # Convert to floats from cupy objects
         epoch_test_errs.append(float(test_loss))
@@ -116,7 +117,7 @@ def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size):
 
 
 def forward_prop(batch):
-    X = batch
+    X = cp.array(batch)
     for layer in network:
         X = layer.forward(X)    
     return X
