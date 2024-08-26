@@ -8,11 +8,15 @@ import numpy as np
 network: list[Layer] = [
     Fully_connected(784, 250),
     ReLU(),
-    Fully_connected(250, 100),
+    Fully_connected(250, 50),
     ReLU(),
-    Fully_connected(100, 50),
+    Fully_connected(50, 50),
     ReLU(),
-    Fully_connected(50, 10),
+    Fully_connected(50, 50),
+    ReLU(),
+    Fully_connected(50, 50),
+    ReLU(),
+    Fully_connected(50, 10)
 ]
 
 n_train = 50000
@@ -21,9 +25,13 @@ x_train, y_train, x_test, y_test = load_as_matrix_with_labels(n_train, n_test)
 
 
 def main():
-    epochs = 8
-    tr_errs, tr_accs, ts_errs, ts_accs = train(x_train, y_train, x_test, y_test, epochs=epochs, learning_rate=0.1, batch_size=100)
+    print_train = True if input("Print training set error/accuracy? y/n ")=='y' else False 
+    print_test = True if input("Print test set error/accuracy? y/n ")=='y' else False 
     
+    epochs=10
+    tr_errs, tr_accs, ts_errs, ts_accs = train(x_train, y_train, x_test, y_test, epochs=epochs, learning_rate=0.2, batch_size=100, print_train=print_train, print_test=print_test)
+    print(f'Final test loss: {ts_errs[epochs-1]:.4f}, Final test accuracy: {ts_accs[epochs-1]:.4f}')
+
     ep_range = np.linspace(1,epochs,epochs)
 
     plt.figure(1)
@@ -45,7 +53,7 @@ def main():
 
     random_images = np.random.choice(n_test, 20)
     
-    #Plot all Principle components
+    #Plot all classifications
     fig, axs = plt.subplots(nrows=4, ncols=1, constrained_layout=True)
     fig.suptitle('Random classifications')
     for ax in axs:
@@ -66,7 +74,8 @@ def main():
     plt.show()
 
 
-def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size):
+def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size,  print_train,print_test):
+    # Convert from np arrays (or lists) to cupy objects
     x_train = cp.array(x_train)
     y_train = cp.array(y_train)
     x_test = cp.array(x_test)
@@ -97,8 +106,10 @@ def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size):
 
         average_train_cost = cp.mean(cp.array(errs))
         average_train_acc = cp.mean(cp.array(accs))
+        if(print_train == True):
+            print(f"Epoch: {e + 1}, Training loss: {average_train_cost:.6f}, Training accuracy: {average_train_acc:.6f}")
 
-        # Convert to floats from cupy objects
+        # Convert to floats from cupy objects (to be used outside the function)
         epoch_errs.append(float(average_train_cost))
         epoch_accs.append(float(average_train_acc))
 
@@ -107,7 +118,8 @@ def train(x_train, y_train, x_test, y_test, epochs, learning_rate, batch_size):
         test_loss = cross_entropy_loss(test_pred, y_test, network[len(network)-1].W.shape[0])
         preds = cp.argmax(test_pred, axis=0)
         test_acc = calculate_accuracy(preds, y_test, len(y_test))
-        print(f"Epoch: {e + 1}, Test loss: {test_loss:.20f}, Test accuracy: {test_acc:.20f}")
+        if(print_test == True):
+            print(f"Epoch: {e + 1}, Test loss: {test_loss:.6f}, Test accuracy: {test_acc:.6f}")
 
         # Convert to floats from cupy objects
         epoch_test_errs.append(float(test_loss))
